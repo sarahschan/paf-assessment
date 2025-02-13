@@ -38,20 +38,28 @@ public class Dataloader {
 
     @PostConstruct
     public void loadData() throws ParseException {
+
         System.out.println("Configured zip file path: " + zipFilePath);
         System.out.println("Resolved absolute path: " + new File(zipFilePath).getAbsolutePath());
 
-        File file = new File(zipFilePath);
+
+        if (!movieService.allDataLoaded()) {
+
+            File file = new File(zipFilePath);
             if (!file.exists()) {
-            System.err.println("ERROR: File does not exist at " + file.getAbsolutePath());
+                System.err.println("ERROR: File does not exist at " + file.getAbsolutePath());
+            }
+
+            List<Movie> movies = readFile();
+
+            movieService.saveToDatabases(movies);
+
+            System.out.println("Movies loaded to databases");
+
+        } else {
+            System.out.println("Database already populated, skipping bootstrapping");
         }
-
-        List<Movie> movies = readFile();
-
-        
-
     }
-
 
     public List<Movie> readFile() throws ParseException  {
         
