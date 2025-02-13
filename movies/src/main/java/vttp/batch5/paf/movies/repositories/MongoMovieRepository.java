@@ -5,7 +5,14 @@ import java.util.List;
 
 import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.aggregation.Aggregation;
+import org.springframework.data.mongodb.core.aggregation.GroupOperation;
+import org.springframework.data.mongodb.core.aggregation.LimitOperation;
+import org.springframework.data.mongodb.core.aggregation.MatchOperation;
+import org.springframework.data.mongodb.core.aggregation.SortOperation;
+import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Repository;
 
@@ -65,11 +72,35 @@ public class MongoMovieRepository {
 
     }
 
- // TODO: Task 3
- // Write the native Mongo query you implement in the method in the comments
- //
- //    native MongoDB query here
- //
+
+    // db.imdb.aggregate([
+    //     { $match: { "directors": { $ne: "" } } },
+    //     { $unwind: "$directors" },  // If "directors" is an array
+    //     { $group: {
+    //         _id: "$directors",
+    //         count: { $sum: 1 },
+    //         movies: { $push: "$_id" }
+    //     }},
+    //     { $sort: { count: -1 } },
+    //     { $limit: 5 }
+    // ])
+    public List<Document> findTopDirectors(int limit){
+
+        Criteria criteria = Criteria.where("directors").ne("");
+        MatchOperation matchCriteria = Aggregation.match(criteria);
+
+        GroupOperation groupOperation = Aggregation.group("directors")
+            .count().as("count")
+            .push("$_id").as("movies");
+
+        SortOperation sortOperation = Aggregation.sort(Sort.Direction.DESC, "count");
+
+        LimitOperation takeTopN = Aggregation.limit(limit);
+
+        Aggregation pipeline = Aggregation.newAggregation(matchCriteria, groupOperation, sortOperation, takeTopN);
+
+        return mongoTemplate.aggregate(pipeline, "imdb", Document.class).getMappedResults();
+    }
 
 
 }

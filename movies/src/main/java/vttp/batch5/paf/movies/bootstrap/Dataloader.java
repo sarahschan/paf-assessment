@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -25,6 +26,7 @@ import jakarta.json.JsonNumber;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonValue;
 import vttp.batch5.paf.movies.models.Movie;
+import vttp.batch5.paf.movies.repositories.MongoMovieRepository;
 import vttp.batch5.paf.movies.services.MovieService;
 
 @Component
@@ -35,6 +37,9 @@ public class Dataloader {
 
     @Autowired
     private MovieService movieService;
+
+    @Autowired
+    MongoMovieRepository mongoMovieRepository;
 
     @PostConstruct
     public void loadData() throws ParseException {
@@ -59,6 +64,7 @@ public class Dataloader {
         } else {
             System.out.println("Database already populated, skipping bootstrapping");
         }
+
     }
 
     public List<Movie> readFile() throws ParseException  {
