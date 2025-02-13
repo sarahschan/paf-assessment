@@ -21,12 +21,10 @@ import org.springframework.stereotype.Component;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.json.Json;
-import jakarta.json.JsonArray;
+import jakarta.json.JsonNumber;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonValue;
 import vttp.batch5.paf.movies.models.Movie;
-import vttp.batch5.paf.movies.repositories.MongoMovieRepository;
-import vttp.batch5.paf.movies.repositories.MySQLMovieRepository;
 import vttp.batch5.paf.movies.services.MovieService;
 
 @Component
@@ -50,9 +48,7 @@ public class Dataloader {
 
         List<Movie> movies = readFile();
 
-        for (Movie m : movies) {
-            System.out.println(m);
-        }
+        
 
     }
 
@@ -82,13 +78,42 @@ public class Dataloader {
                             }
 
                             Movie movie = new Movie();
-                                movie.setImdbId(jsonObject.getString("imdb_id"));
+                            movie.setImdbId(jsonObject.getString("imdb_id"));
+
+                            JsonValue voteAverageValue = jsonObject.get("vote_average");
+                            if (voteAverageValue instanceof JsonNumber) {
                                 movie.setVoteAverage((float) jsonObject.getJsonNumber("vote_average").doubleValue());
-                                movie.setVoteCount(jsonObject.getInt("vote_count"));
-                                movie.setReleaseDate(new java.sql.Date(releasedDate.getTime()));
+                            }
+
+                            movie.setVoteCount(jsonObject.getInt("vote_count"));
+                            movie.setReleaseDate(new java.sql.Date(releasedDate.getTime()));
+
+                            JsonValue revenueValue = jsonObject.get("revenue");
+                            if (revenueValue instanceof JsonNumber) {
                                 movie.setRevenue((float) jsonObject.getJsonNumber("revenue").doubleValue());
+                            }
+
+                            JsonValue budgetValue = jsonObject.get("budget");
+                            if (budgetValue instanceof JsonNumber) {
                                 movie.setBudget((float) jsonObject.getJsonNumber("budget").doubleValue());
-                                movie.setRuntime(jsonObject.getInt("runtime"));
+                            }
+
+                            movie.setRuntime(jsonObject.getInt("runtime"));
+                            movie.setTitle(jsonObject.getString("title"));
+                            movie.setDirectors(jsonObject.getString("director"));
+                            movie.setOverview(jsonObject.getString("overview"));
+                            movie.setTagline(jsonObject.getString("tagline"));
+                            movie.setGenres(jsonObject.getString("genres"));
+
+                            JsonValue imdbRatingValue = jsonObject.get("imdb_rating");
+                            if (imdbRatingValue instanceof JsonNumber) {
+                                movie.setImdbRating(((JsonNumber) imdbRatingValue).intValue());
+                            }
+
+                            JsonValue imdbVotesValue = jsonObject.get("imdb_votes");
+                            if (imdbVotesValue instanceof JsonNumber) {
+                                movie.setImdbVotes(((JsonNumber) imdbVotesValue).intValue());
+                            }
 
                             movies.add(movie);
 
@@ -106,32 +131,3 @@ public class Dataloader {
 
     }
 }
-
-
-
-    // @PostConstruct
-    // public void loadData() {
-    //     if (isDataLoaded()) {
-    //         System.out.println("Data already loaded. Skipping bootstrap process.");
-    //         return;
-    //     }
-
-    //     List<Movie> movies = readMoviesFromZip(zipFilePath);
-    //     movieRepository1.saveAll(movies);
-    //     movieRepository2.saveAll(movies);
-
-    //     System.out.println("Movies successfully loaded into databases.");
-    // }
-
-
-
-    // private Movie processMovie(JsonObject jsonObject) {
-    //     return new Movie(
-    //         jsonObject.getInt("id", 0),
-    //         jsonObject.getString("title", ""),
-    //         jsonObject.getString("release_date", "").startsWith("2018") ? 2018 : 
-    //         Integer.parseInt(jsonObject.getString("release_date", "0").split("-")[0]),
-    //         jsonObject.getInt("rating", 0),
-    //         jsonObject.getBoolean("is_featured", false)
-    //     );
-    // }
